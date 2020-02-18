@@ -178,6 +178,11 @@ def handle_scene_activated(hass: HomeAssistant, scene_value: OZWValue):
         # legacy/network scene
         scene_id = scene_value.value
         label = scene_value.label
+        payload = {
+            const.ATTR_NODE_ID: scene_value.node.id,
+            const.ATTR_SCENE_ID: scene_id,
+            const.ATTR_SCENE_LABEL: label,
+        }
     else:
         # central scene command
         label = scene_value.value["Selected"]
@@ -185,18 +190,14 @@ def handle_scene_activated(hass: HomeAssistant, scene_value: OZWValue):
             if item["Label"] == label:
                 scene_id = item["Value"]
                 break
-    _LOGGER.debug(
-        "Scene activated - node: %s - scene_id: %s - label: %s",
-        scene_value.node.id,
-        scene_id,
-        label,
-    )
-    # Simply forward it to the hass event bus
-    hass.bus.async_fire(
-        const.EVENT_SCENE_ACTIVATED,
-        {
+        payload = {
             const.ATTR_NODE_ID: scene_value.node.id,
-            const.ATTR_SCENE_ID: scene_id,
-            const.ATTR_SCENE_LABEL: label,
-        },
-    )
+            const.ATTR_SCENE_ID: scene_value.index,
+            const.ATTR_SCENE_LABEL: scene_value.label,
+            const.ATTR_SCENE_VALUE_ID: scene_id,
+            const.ATTR_SCENE_VALUE_LABEL: label,
+        }
+    _LOGGER.debug("Scene activated - payload: %s", payload)
+
+    # Simply forward it to the hass event bus
+    hass.bus.async_fire(const.EVENT_SCENE_ACTIVATED, payload)
